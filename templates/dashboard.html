@@ -1,0 +1,51 @@
+{% extends "base.html" %}{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Admissions dashboard</h1><p>Live figures read from the admissions database.</p></div>
+  <div><a class="btn" href="{{ url_for('application_new') }}">+ New application</a>
+       <a class="btn light" href="{{ url_for('applicant_new') }}">+ New applicant</a></div>
+</div>
+<div class="kpis">
+  <div class="kpi"><div class="label">Applicants</div><div class="value">{{ stats.applicants }}</div><div class="hint">unique passports</div></div>
+  <div class="kpi"><div class="label">Applications</div><div class="value">{{ stats.applications }}</div><div class="hint">all cycles</div></div>
+  <div class="kpi alt"><div class="label">Open files</div><div class="value">{{ stats.open }}</div><div class="hint">awaiting a decision</div></div>
+  <div class="kpi alt"><div class="label">Docs to check</div><div class="value">{{ stats.pending_docs }}</div><div class="hint">pending or mismatch</div></div>
+  <div class="kpi"><div class="label">Acceptance</div><div class="value">{{ stats.accept_rate }}%</div><div class="hint">of all decisions</div></div>
+  <div class="kpi"><div class="label">Avg. aid</div><div class="value">{{ stats.avg_aid }}%</div><div class="hint">of tuition (cap 80%)</div></div>
+</div>
+<div class="grid g-side">
+  <div class="card">
+    <div class="card-head"><h2>Applications by program</h2><a href="{{ url_for('reports', rid='Q4') }}">See SQL (Q4)</a></div>
+    {% for r in per_program %}
+    <div class="bar-row">
+      <span>{{ r.programName|replace('Business Administration - ', '') }}</span>
+      <div class="bar-track"><div class="bar-fill" style="width: {{ (100 * r.n / max_n)|round(1) }}%"></div>
+        <div class="bar-fill cur" style="width: {{ (100 * (r.current or 0) / max_n)|round(1) }}%"></div></div>
+      <span class="num">{{ r.n }}</span>
+    </div>
+    {% endfor %}
+    <div class="legend"><span><i style="background:#840132"></i>All cycles</span><span><i style="background:#d7d889"></i>Cycle {{ current_cycle }}</span></div>
+  </div>
+  <div class="card">
+    <h2>Decisions issued</h2>
+    <table>
+      <tr><th>Decision</th><th class="num">Files</th></tr>
+      {% for d in decisions %}<tr><td>{{ badge(d.decisionType) }}</td><td class="num">{{ d.n }}</td></tr>{% endfor %}
+    </table>
+    <p class="help" style="margin-top:14px">Rules enforced by the database: at least two reviews before a decision (BR18), aid only for accepted files (BR20), aid ≤ 80% (BR22).</p>
+  </div>
+</div>
+<div class="card">
+  <div class="card-head"><h2>Latest applications</h2><a href="{{ url_for('applications') }}">All applications →</a></div>
+  <div class="table-wrap"><table>
+    <tr><th>ID</th><th>Applicant</th><th>Program</th><th>Cycle</th><th>Round</th><th>Submitted</th><th>Status</th><th class="num">Avg. score</th></tr>
+    {% for a in recent %}
+    <tr><td><a href="{{ url_for('application_detail', application_id=a.applicationId) }}">{{ a.applicationId }}</a></td>
+        <td><a href="{{ url_for('applicant_detail', applicant_id=a.applicantId) }}">{{ a.applicantName }}</a></td>
+        <td>{{ a.programId }}</td><td>{{ a.admissionYear }}</td><td>{{ badge(a.admissionRound) }}</td>
+        <td>{{ a.submissionDate }}</td><td>{{ badge(a.applicationStatus) }}</td>
+        <td class="num">{{ a.averageReviewScore if a.averageReviewScore is not none else '–' }}</td></tr>
+    {% endfor %}
+  </table></div>
+</div>
+{% endblock %}

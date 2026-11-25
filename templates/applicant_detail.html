@@ -1,0 +1,36 @@
+{% extends "base.html" %}{% block title %}{{ p.fullName }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="crumbs"><a href="{{ url_for('applicants') }}">Applicants</a> / {{ p.applicantId }}</div>
+    <h1>{{ p.fullName }}</h1><p>Applicant {{ p.applicantId }} · passport {{ p.passportNo }}</p></div>
+  <a class="btn" href="{{ url_for('application_new', applicant=p.applicantId) }}">+ New application for this applicant</a>
+</div>
+<div class="grid g2">
+  <div class="card"><h3>Personal details</h3>
+    <dl class="facts">
+      <dt>First name</dt><dd>{{ raw.firstName }}</dd>
+      <dt>Middle name</dt><dd>{{ raw.middleName or '—' }}</dd>
+      <dt>Last name</dt><dd>{{ raw.lastName }}</dd>
+      <dt>Date of birth</dt><dd>{{ p.dateOfBirth }}</dd>
+      <dt>Age (derived)</dt><dd>{{ p.age }} years</dd>
+      <dt>E-mail</dt><dd>{{ p.email }}</dd>
+    </dl></div>
+  <div class="card"><h3>Contact and nationality</h3>
+    <dl class="facts">
+      {% for ph in phones %}<dt>{{ ph.phoneType }}</dt><dd>{{ ph.phoneNumber }}</dd>{% endfor %}
+      <dt>Nationalities</dt><dd>{% for n in nats %}<span class="badge b-Regular">{{ n.nationality }}</span> {% endfor %}</dd>
+    </dl></div>
+</div>
+<div class="card"><h3>Applications ({{ apps|length }})</h3>
+  <div class="table-wrap"><table>
+    <tr><th>ID</th><th>Program</th><th>Cycle</th><th>Round</th><th>Status</th><th class="num">Avg. score</th><th>Decision</th><th class="num">Aid</th></tr>
+    {% for a in apps %}
+    <tr><td><a href="{{ url_for('application_detail', application_id=a.applicationId) }}">{{ a.applicationId }}</a></td>
+      <td>{{ a.programName }}</td><td>{{ a.admissionYear }}</td><td>{{ badge(a.admissionRound) }}</td><td>{{ badge(a.applicationStatus) }}</td>
+      <td class="num">{{ a.averageReviewScore if a.averageReviewScore is not none else '–' }}</td><td>{{ badge(a.decisionType) }}</td>
+      <td class="num">{{ (a.aidPercentage|string ~ '%') if a.aidPercentage else '–' }}</td></tr>
+    {% else %}<tr><td colspan="8" class="empty">No applications yet.</td></tr>{% endfor %}
+  </table></div>
+  <p class="help">BR3: at most three applications per cycle, and only one per program.</p>
+</div>
+{% endblock %}

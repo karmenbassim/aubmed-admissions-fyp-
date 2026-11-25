@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block title %}Programs{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Programs and requirements</h1><p>Each program is offered by one department and has its own admission requirements (M:N).</p></div></div>
+<div class="card"><div class="table-wrap"><table>
+  <tr><th>Code</th><th>Program</th><th>Level</th><th>Department</th><th>Status</th><th class="num">Tuition</th><th>Requirements</th><th class="num">Applications</th></tr>
+  {% for p in progs %}
+  <tr><td><b>{{ p.programId }}</b></td><td>{{ p.programName }}</td><td>{{ p.degreeLevel }}</td><td>{{ p.departmentName }}</td>
+    <td>{% if p.programStatus == 'Active' %}<span class="badge b-Verified">Active</span>{% else %}<span class="badge b-Pending">{{ p.programStatus }}</span>{% endif %}</td>
+    <td class="num">€{{ '{:,.0f}'.format(p.annualTuition) }}</td>
+    <td>{% for r in reqs.get(p.programId, []) %}<div>{{ r.requirementName }}{% if r.isMandatory == 'N' %} <span class="help">(optional)</span>{% endif %}</div>{% endfor %}</td>
+    <td class="num">{{ p.apps }}</td></tr>
+  {% endfor %}
+</table></div></div>
+<div class="card"><h2>Faculty reviewers</h2><div class="table-wrap"><table>
+  <tr><th>ID</th><th>Name</th><th>Department</th><th>E-mail</th><th class="num">Reviews written</th></tr>
+  {% for p in profs %}<tr><td>{{ p.professorId }}</td><td>{{ p.firstName }} {{ p.lastName }}</td><td>{{ p.departmentName }}</td><td>{{ p.email or '—' }}</td><td class="num">{{ p.reviews }}</td></tr>{% endfor %}
+</table></div></div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}{% block title %}New application{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="crumbs"><a href="{{ url_for('applications') }}">Applications</a> / new</div>
+  <h1>Submit a new application</h1><p>The database checks the deadlines (BR6), the three-application limit (BR3) and duplicate programs.</p></div></div>
+<div class="grid g-side">
+<form method="post" class="card">
+  <div class="field"><label>Applicant</label>
+    <select name="applicantId" required>{% for a in applicants %}<option value="{{ a.applicantId }}" {{ 'selected' if form.applicantId|string == a.applicantId|string }}>{{ a.name }} ({{ a.applicantId }})</option>{% endfor %}</select>
+    <div class="help">Not in the list? <a href="{{ url_for('applicant_new') }}">Register the applicant first</a>.</div></div>
+  <div class="field"><label>Program</label>
+    <select name="programId" required>{% for p in programs %}<option value="{{ p.programId }}" {{ 'selected' if form.programId == p.programId }}>{{ p.programName }} — {{ p.degreeLevel }}</option>{% endfor %}</select>
+    <div class="help">Only programs with status “Active” accept applications.</div></div>
+  <div class="row">
+    <div class="field"><label>Admission cycle</label><select name="admissionYear">{% for c in cycles %}<option {{ 'selected' if form.admissionYear|string == c.admissionYear|string }}>{{ c.admissionYear }}</option>{% endfor %}</select></div>
+    <div class="field"><label>Term</label><input value="Fall" disabled><div class="help">Default value – cohort-based (BR4)</div></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Submission date</label><input type="date" name="submissionDate" required value="{{ form.submissionDate or today }}"></div>
+    <div class="field"><label>Round</label><select name="admissionRound">{% for r in ['Regular','Early'] %}<option {{ 'selected' if form.admissionRound == r }}>{{ r }}</option>{% endfor %}</select></div>
+  </div>
+  <button class="btn">Submit application</button> <a class="btn light" href="{{ url_for('applications') }}">Cancel</a>
+</form>
+<div class="card"><h3>Admission cycles</h3>
+  <table><tr><th>Cycle</th><th>Early deadline</th><th>Regular deadline</th></tr>
+  {% for c in cycles %}<tr><td>{{ c.admissionYear }}</td><td>{{ c.earlyDeadline }}</td><td>{{ c.regularDeadline }}</td></tr>{% endfor %}</table>
+  <p class="help" style="margin-top:12px">An application counts as Early only if it is submitted on or before the early deadline.</p>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% block title %}Verification queue{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Document verification queue</h1>
+  <p>Open files whose uploaded documents still need to be checked against what the applicant typed in.</p></div></div>
+<div class="grid g-side">
+<div class="card">
+  <div class="card-head"><h2>Documents to check ({{ docs|length }})</h2><a href="{{ url_for('reports', rid='Q9') }}">SQL (Q9)</a></div>
+  <div class="table-wrap"><table>
+    <tr><th>Application</th><th>Applicant</th><th>Document</th><th>Uploaded</th><th>Status</th><th>Action</th></tr>
+    {% for d in docs %}
+    <tr><td><a href="{{ url_for('application_detail', application_id=d.applicationId) }}">{{ d.applicationId }}</a> <span class="help">{{ d.programId }}</span></td>
+      <td>{{ d.applicant }}</td><td>{{ d.requirementName }}<div class="help">{{ d.fileName }}</div></td><td>{{ d.uploadDate }}</td><td>{{ badge(d.verificationStatus) }}</td>
+      <td><form class="inline" method="post" action="{{ url_for('set_document_status', application_id=d.applicationId, doc_no=d.documentNo) }}"><input type="hidden" name="status" value="Verified"><input type="hidden" name="next" value="verification"><button class="btn small olive">Verify</button></form>
+        {% if d.verificationStatus == 'Pending' %}<form class="inline" method="post" action="{{ url_for('set_document_status', application_id=d.applicationId, doc_no=d.documentNo) }}"><input type="hidden" name="status" value="Mismatch"><input type="hidden" name="next" value="verification"><button class="btn small light">Mismatch</button></form>{% endif %}</td></tr>
+    {% else %}<tr><td colspan="6" class="empty">Nothing left to verify.</td></tr>{% endfor %}
+  </table></div>
+</div>
+<div class="card"><div class="card-head"><h2>Missing documents</h2><a href="{{ url_for('reports', rid='Q3') }}">SQL (Q3)</a></div>
+  <p class="help">Mandatory items not uploaded yet. These files cannot be reviewed until they are complete (BR14).</p>
+  <table><tr><th>File</th><th>Missing</th></tr>
+  {% for m in missing %}<tr><td><a href="{{ url_for('application_detail', application_id=m.applicationId) }}">{{ m.applicationId }}</a><div class="help">{{ m.applicant }}</div></td><td>{{ m.requirementName }}</td></tr>
+  {% else %}<tr><td colspan="2" class="empty">All open files are complete.</td></tr>{% endfor %}</table>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% block title %}Applicants{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Applicants</h1><p>Search by name, passport number, e-mail or applicant ID.</p></div>
+  <a class="btn" href="{{ url_for('applicant_new') }}">+ New applicant</a>
+</div>
+<div class="card">
+  <form class="filters" method="get">
+    <div style="flex:2; min-width:240px"><label>Search</label><input name="q" value="{{ q }}" placeholder="e.g. Haddad, AB1234567, 1003"></div>
+    <div style="flex:1; min-width:170px"><label>Nationality</label>
+      <select name="nationality"><option value="">All</option>
+        {% for n in nationalities %}<option {{ 'selected' if n == nat }}>{{ n }}</option>{% endfor %}</select></div>
+    <div><button class="btn">Search</button> <a class="btn light" href="{{ url_for('applicants') }}">Clear</a></div>
+  </form>
+</div>
+<div class="card">
+  <div class="card-head"><h3>{{ rows|length }} applicant{{ '' if rows|length == 1 else 's' }}</h3><span class="help">Age is derived from the date of birth (not stored)</span></div>
+  <div class="table-wrap"><table>
+    <tr><th>ID</th><th>Name</th><th>Passport</th><th class="num">Age</th><th>Nationalities</th><th>E-mail</th><th class="num">Applications</th></tr>
+    {% for r in rows %}
+    <tr><td><a href="{{ url_for('applicant_detail', applicant_id=r.applicantId) }}">{{ r.applicantId }}</a></td>
+        <td><a href="{{ url_for('applicant_detail', applicant_id=r.applicantId) }}">{{ r.fullName }}</a></td>
+        <td>{{ r.passportNo }}</td><td class="num">{{ r.age }}</td><td>{{ r.nationalities }}</td>
+        <td>{{ r.email }}</td><td class="num">{{ r.apps }}</td></tr>
+    {% else %}<tr><td colspan="7" class="empty">No applicant matches your search.</td></tr>{% endfor %}
+  </table></div>
+</div>
+{% endblock %}

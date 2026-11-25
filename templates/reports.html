@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block title %}SQL reports{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>SQL reports</h1><p>The queries of Chapter 7 (file sql/03_queries.sql), executed live on the database.</p></div></div>
+<div class="grid" style="grid-template-columns: 290px 1fr">
+  <div class="card report-list" style="padding:12px 8px">
+    {% for r in reports %}<a href="{{ url_for('reports', rid=r.id) }}" class="{{ 'active' if r.id == current.id }}"><b>{{ r.id }}</b> · {{ r.title.split('(')[0].split('.')[0]|truncate(52) }}</a>{% endfor %}
+  </div>
+  <div>
+    <div class="card"><h2>{{ current.id }}</h2><p>{{ current.title }}</p><pre class="sql">{{ current.sql }}</pre></div>
+    <div class="card"><div class="card-head"><h3>Result</h3><span class="help">{{ rows|length }} row{{ '' if rows|length == 1 else 's' }}</span></div>
+      <div class="table-wrap"><table>
+        <tr>{% for c in cols %}<th>{{ c }}</th>{% endfor %}</tr>
+        {% for r in rows %}<tr>{% for v in r %}<td class="{{ 'num' if v is number }}">{{ v if v is not none else '—' }}</td>{% endfor %}</tr>
+        {% else %}<tr><td colspan="{{ cols|length }}" class="empty">No rows.</td></tr>{% endfor %}
+      </table></div></div>
+  </div>
+</div>
+{% endblock %}

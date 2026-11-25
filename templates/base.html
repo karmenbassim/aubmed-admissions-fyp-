@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Admissions{% endblock %} · AUB Mediterraneo Admissions</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% macro badge(v) -%}{% if v %}<span class="badge b-{{ v|replace(' ', '') }}">{{ v }}</span>{% else %}<span class="help">–</span>{% endif %}{%- endmacro %}
+<div class="topbar"><div class="wrap"><span>American University of Beirut – Mediterraneo · Pafos, Cyprus</span><span>Admissions database · cycle {{ current_cycle }}</span></div></div>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="{{ url_for('dashboard') }}">
+      <div class="brand-mark">AM</div>
+      <div class="brand-text"><div class="name">AUB Mediterraneo</div><div class="unit">Office of Admissions</div></div>
+    </a>
+    {% set ep = request.endpoint or '' %}
+    <nav class="main">
+      <a href="{{ url_for('dashboard') }}" class="{{ 'active' if ep == 'dashboard' }}">Dashboard</a>
+      <a href="{{ url_for('applicants') }}" class="{{ 'active' if ep.startswith('applicant') }}">Applicants</a>
+      <a href="{{ url_for('applications') }}" class="{{ 'active' if ep.startswith('application') }}">Applications</a>
+      <a href="{{ url_for('verification') }}" class="{{ 'active' if ep == 'verification' }}">Verification</a>
+      <a href="{{ url_for('programs') }}" class="{{ 'active' if ep == 'programs' }}">Programs</a>
+      <a href="{{ url_for('reports') }}" class="{{ 'active' if ep == 'reports' }}">SQL Reports</a>
+    </nav>
+  </div>
+</header>
+<main class="wrap">
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, m in msgs %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}
+  {% endwith %}
+  {% if not_found %}
+    <div class="card"><h1>Record not found</h1><p>The page or record you asked for does not exist. <a href="{{ url_for('dashboard') }}">Back to the dashboard</a>.</p></div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+<footer class="site"><div class="wrap"><span>INDE 513 Information Systems · course project · all applicant data is fictional</span><span>Flask + SQLite</span></div></footer>
+</body>
+</html>

@@ -1,0 +1,31 @@
+{% extends "base.html" %}{% block title %}New applicant{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="crumbs"><a href="{{ url_for('applicants') }}">Applicants</a> / new</div>
+  <h1>Register a new applicant</h1><p>Fields marked optional may be left empty. The passport number must be unique.</p></div></div>
+<form method="post" class="card">
+  <h3>Identity</h3>
+  <div class="row">
+    <div class="field"><label>First name</label><input name="firstName" required maxlength="30" value="{{ form.firstName }}"></div>
+    <div class="field"><label>Middle name <span class="opt">(optional)</span></label><input name="middleName" maxlength="30" value="{{ form.middleName }}"></div>
+    <div class="field"><label>Last name</label><input name="lastName" required maxlength="30" value="{{ form.lastName }}"></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Passport number</label><input name="passportNo" required minlength="6" maxlength="15" value="{{ form.passportNo }}"><div class="help">Secondary key – 6 to 15 characters</div></div>
+    <div class="field"><label>Date of birth</label><input type="date" name="dateOfBirth" required value="{{ form.dateOfBirth }}"></div>
+    <div class="field"><label>E-mail</label><input type="email" name="email" required maxlength="80" value="{{ form.email }}"></div>
+  </div>
+  <h3>Phone numbers <span class="help">(multivalued – at least one)</span></h3>
+  <div class="row">
+    <div class="field"><label>Phone 1</label><input name="phone1" required placeholder="+357 99 123456" value="{{ form.phone1 }}"></div>
+    <div class="field"><label>Type</label><select name="phoneType1">{% for t in ['Mobile','Home','Work'] %}<option {{ 'selected' if form.phoneType1 == t }}>{{ t }}</option>{% endfor %}</select></div>
+    <div class="field"><label>Phone 2 <span class="opt">(optional)</span></label><input name="phone2" placeholder="+961 1 234567" value="{{ form.phone2 }}"></div>
+    <div class="field"><label>Type</label><select name="phoneType2">{% for t in ['Home','Mobile','Work'] %}<option {{ 'selected' if form.phoneType2 == t }}>{{ t }}</option>{% endfor %}</select></div>
+  </div>
+  <h3>Nationalities <span class="help">(multivalued – at least one)</span></h3>
+  <div class="row">
+    <div class="field"><label>Nationality 1</label><input name="nat1" required maxlength="40" placeholder="e.g. Lebanese" value="{{ form.nat1 }}"></div>
+    <div class="field"><label>Nationality 2 <span class="opt">(optional)</span></label><input name="nat2" maxlength="40" placeholder="e.g. Cypriot" value="{{ form.nat2 }}"></div>
+  </div>
+  <button class="btn">Save applicant</button> <a class="btn light" href="{{ url_for('applicants') }}">Cancel</a>
+</form>
+{% endblock %}

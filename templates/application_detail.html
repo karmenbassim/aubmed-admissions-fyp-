@@ -1,0 +1,80 @@
+{% extends "base.html" %}{% block title %}Application {{ a.applicationId }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="crumbs"><a href="{{ url_for('applications') }}">Applications</a> / {{ a.applicationId }}</div>
+    <h1>Application {{ a.applicationId }}</h1>
+    <p><a href="{{ url_for('applicant_detail', applicant_id=a.applicantId) }}">{{ a.applicantName }}</a> · {{ a.programName }} · Fall {{ a.admissionYear }}</p></div>
+  <div>{{ badge(a.admissionRound) }} {{ badge(a.applicationStatus) }} {{ badge(a.decisionType) }}</div>
+</div>
+<div class="grid g3">
+  <div class="card"><h3>File</h3><dl class="facts">
+    <dt>Program</dt><dd>{{ a.programId }} ({{ a.degreeLevel }})</dd>
+    <dt>Submitted</dt><dd>{{ a.submissionDate }}</dd>
+    <dt>Days since</dt><dd>{{ a.daysSinceSubmission }} (derived)</dd>
+    <dt>Annual tuition</dt><dd>€{{ '{:,.0f}'.format(tuition) }}</dd></dl></div>
+  <div class="card"><h3>Average review score</h3>
+    <div class="score">{{ a.averageReviewScore if a.averageReviewScore is not none else '—' }}</div>
+    <p class="help">Derived from {{ a.reviewCount }} review{{ '' if a.reviewCount == 1 else 's' }} · calculated, not stored (BR17)</p></div>
+  <div class="card"><h3>Requirement checklist</h3><ul class="check">
+    {% for c in checklist %}<li><span>{{ c.requirementName }}{% if c.isMandatory == 'N' %} <span class="help">(optional)</span>{% endif %}</span>
+      {% if c.received %}<span class="ok">✓</span>{% else %}<span class="no">✗</span>{% endif %}</li>{% endfor %}</ul></div>
+</div>
+
+<div class="card" id="documents">
+  <div class="card-head"><h2>Documents</h2><span class="help">Weak entity · identified by (applicationId, documentNo)</span></div>
+  <div class="table-wrap"><table>
+    <tr><th class="num">#</th><th>Requirement</th><th>File</th><th>Uploaded</th><th>Verification</th><th>Action</th></tr>
+    {% for d in docs %}
+    <tr><td class="num">{{ d.documentNo }}</td><td>{{ d.requirementName }}</td><td>{{ d.fileName }}</td><td>{{ d.uploadDate }}</td>
+      <td>{{ badge(d.verificationStatus) }}</td>
+      <td>{% if d.verificationStatus != 'Verified' %}<form class="inline" method="post" action="{{ url_for('set_document_status', application_id=a.applicationId, doc_no=d.documentNo) }}"><input type="hidden" name="status" value="Verified"><button class="btn small olive">Verify</button></form>{% endif %}
+          {% if d.verificationStatus != 'Mismatch' %}<form class="inline" method="post" action="{{ url_for('set_document_status', application_id=a.applicationId, doc_no=d.documentNo) }}"><input type="hidden" name="status" value="Mismatch"><button class="btn small light">Mismatch</button></form>{% endif %}</td></tr>
+    {% else %}<tr><td colspan="6" class="empty">No document uploaded yet.</td></tr>{% endfor %}
+  </table></div>
+  {% if a.applicationStatus != 'Decided' %}
+  <form method="post" action="{{ url_for('add_document', application_id=a.applicationId) }}" class="row" style="margin-top:16px; align-items:end">
+    <div><label>Requirement</label><select name="requirementId">{% for r in requirements %}<option value="{{ r.requirementId }}">{{ r.requirementName }}</option>{% endfor %}</select></div>
+    <div><label>File name <span class="opt">(optional)</span></label><input name="fileName" maxlength="60" placeholder="auto"></div>
+    <div><label>Upload date</label><input type="date" name="uploadDate" value="{{ today }}" required></div>
+    <div><button class="btn">Record document</button></div>
+  </form>{% endif %}
+</div>
+
+<div class="card" id="reviews">
+  <div class="card-head"><h2>Professor reviews</h2><span class="help">M:N relationship · 2 to 3 reviewers from the program's department</span></div>
+  <div class="table-wrap"><table>
+    <tr><th>Professor</th><th>Date</th><th class="num">Score</th><th>Comments</th></tr>
+    {% for r in reviews %}<tr><td>{{ r.professor }}</td><td>{{ r.reviewDate }}</td><td class="num"><b>{{ r.score }}</b></td><td>{{ r.comments or '—' }}</td></tr>
+    {% else %}<tr><td colspan="4" class="empty">No review yet.</td></tr>{% endfor %}
+  </table></div>
+  {% if a.applicationStatus != 'Decided' and reviewers %}
+  <form method="post" action="{{ url_for('add_review', application_id=a.applicationId) }}" class="row" style="margin-top:16px; align-items:end">
+    <div><label>Reviewer</label><select name="professorId">{% for p in reviewers %}<option value="{{ p.professorId }}">{{ p.name }}</option>{% endfor %}</select></div>
+    <div><label>Score (0–100)</label><input type="number" name="score" min="0" max="100" required></div>
+    <div><label>Review date</label><input type="date" name="reviewDate" value="{{ today }}" required></div>
+    <div style="grid-column: span 2"><label>Comments <span class="opt">(optional)</span></label><input name="comments" maxlength="300"></div>
+    <div><button class="btn">Save review</button></div>
+  </form>{% endif %}
+</div>
+
+<div class="card" id="decision">
+  <h2>Decision and financial aid</h2>
+  {% if a.decisionType %}
+    <dl class="facts"><dt>Decision</dt><dd>{{ badge(a.decisionType) }} on {{ a.decisionDate }}</dd>
+      {% if award %}<dt>Financial aid</dt><dd>{{ award.aidPercentage }}% · {{ award.awardType }} · €{{ '{:,.0f}'.format(a.aidAmount) }} per year (derived)</dd>{% endif %}</dl>
+    {% if a.decisionType == 'Accepted' and not award %}
+    <form method="post" action="{{ url_for('add_aid', application_id=a.applicationId) }}" class="row" style="margin-top:16px; align-items:end">
+      <div><label>Aid percentage (max 80)</label><input type="number" step="0.5" name="aidPercentage" min="1" max="100" required></div>
+      <div><label>Award type</label><select name="awardType">{% for t in ['Need-Based','Merit','Need + Merit'] %}<option>{{ t }}</option>{% endfor %}</select></div>
+      <div><button class="btn">Offer aid</button></div>
+    </form>{% endif %}
+  {% else %}
+    <form method="post" action="{{ url_for('add_decision', application_id=a.applicationId) }}" class="row" style="align-items:end">
+      <div><label>Decision</label><select name="decisionType">{% for t in ['Accepted','Waitlisted','Rejected'] %}<option>{{ t }}</option>{% endfor %}</select></div>
+      <div><label>Decision date</label><input type="date" name="decisionDate" value="{{ today }}" required></div>
+      <div><button class="btn">Record decision</button></div>
+    </form>
+    <p class="help">The database refuses a decision until at least two reviews are completed (BR18).</p>
+  {% endif %}
+</div>
+{% endblock %}
